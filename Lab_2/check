@@ -1,0 +1,31 @@
+#ifndef _OTP_
+#define _OTP_
+
+#include <cstdlib>
+#include <iostream>
+
+#include <unistd.h>
+#include <getopt.h>
+#include <cstring>
+
+#include <fcntl.h>
+
+#include <sys/stat.h>
+#include <sys/sysinfo.h>
+
+#include <pthread.h>
+
+#define FILE_LENGTH 10000
+
+using namespace std;
+
+struct WorkerData {
+    pthread_barrier_t * barrier;
+    char * crypto_buffer;
+    char * text_buffer;
+    char * output_buffer;
+    int length;
+};
+
+class OneTimePad {
+    pthread_barrier_t * barrier;
