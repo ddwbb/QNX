@@ -54,7 +54,7 @@ void OneTimePad::operator() () {
 
     cout << "Length of file: " << length << endl;
 
-    worker_count = get_nprocs();
+    worker_count = sysconf(_SC_NPROCESSORS_ONLN);
 
     barrier = new pthread_barrier_t;
     worker_threads = new pthread_t[worker_count];

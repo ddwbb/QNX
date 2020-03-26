@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <unistd.h>
-#include <getopt.h>
 #include <cstring>
 
 #include <fcntl.h>
