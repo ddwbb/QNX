@@ -4,15 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-// #include <sys/iofunc.h>
-// #include <sys/dispatch.h>
+#include <sys/iofunc.h>
+#include <sys/dispatch.h>
 
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
 static iofunc_attr_t             attr;
 
-int main(int argc, char **argv)
-{
+int io_devctl(resmgr_connect_t *, io_devctl_t *, iofunc_ocb_t *);
+
+int main(int argc, char *argv[]) {
     /* declare variables we'll be using */
     resmgr_attr_t        resmgr_attr;
     dispatch_t           *dpp;
@@ -66,4 +67,9 @@ int main(int argc, char **argv)
         dispatch_handler(ctp);
     }
     return EXIT_SUCCESS;
+}
+
+
+int io_devctl(resmgr_connect_t * ctp, io_devctl_t * msg, iofunc_ocb_t * ocb) {
+    
 }
