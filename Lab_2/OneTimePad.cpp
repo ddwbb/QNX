@@ -2,10 +2,9 @@
 
 OneTimePad::OneTimePad() {
     initialized = false;
-    crypto = new char[FILE_LENGTH + 1];
+    crypto = new int[FILE_LENGTH];
     text = new char[FILE_LENGTH + 1];
 
-    crypto[FILE_LENGTH] = '\0';
     text[FILE_LENGTH] = '\0';
 
     output = nullptr;
@@ -35,7 +34,7 @@ void OneTimePad::operator() () {
     cout << "Input Text File: " << text_file_name << endl;
     cout << "Input Output File: " << output_file_name << endl;
 
-    crypto_file_length = read_file(crypto_file_name, crypto);
+    crypto_file_length = read_crypto_file(crypto_file_name, crypto);
     text_file_length = read_file(text_file_name, text);
 
     if (!crypto_file_length) {
@@ -47,6 +46,9 @@ void OneTimePad::operator() () {
         return;
     }
 
+    cout << "Length of Crypto: " << crypto_file_length << endl;
+    cout << "Length of Text: " << text_file_length << endl;
+
     length = (crypto_file_length < text_file_length) ? crypto_file_length : text_file_length;
 
     output = new char[length + 1];
@@ -55,6 +57,8 @@ void OneTimePad::operator() () {
     cout << "Length of file: " << length << endl;
 
     worker_count = sysconf(_SC_NPROCESSORS_ONLN);
+
+    cout << "Count of CPU cores: " << worker_count << endl;
 
     barrier = new pthread_barrier_t;
     worker_threads = new pthread_t[worker_count];
@@ -97,6 +101,20 @@ int OneTimePad::read_file(const char * file_name, char * buffer) {
     return length;
 }
 
+int OneTimePad::read_crypto_file(const char * file_name, int * buffer) {
+	int length = 0;
+	FILE * fp = fopen(file_name, "rt");
+	if (fp == NULL) {
+	    cout << "Cannot open file: " << file_name << endl;
+	    return 0;
+	}
+
+	for (length = 0; !feof(fp); length++)
+		fscanf(fp, "%d", &buffer[length]);
+
+	return --length;
+}
+
 void OneTimePad::worker_init() {
     worker_datas = new struct WorkerData[worker_count];
 
@@ -106,13 +124,15 @@ void OneTimePad::worker_init() {
         worker_datas[i].length = worker_length;
         if (i == (worker_count - 1))
             worker_datas[i].length += length % worker_count;
-        worker_datas[i].crypto_buffer = new char[worker_datas[i].length];
+        worker_datas[i].crypto_buffer = new int[worker_datas[i].length];
         worker_datas[i].text_buffer = new char[worker_datas[i].length];
         worker_datas[i].output_buffer = new char[worker_datas[i].length + 1];
         worker_datas[i].output_buffer[worker_datas[i].length] = '\0';
 
-        memcpy(worker_datas[i].crypto_buffer, &crypto[i * worker_length], worker_datas[i].length);
-        memcpy(worker_datas[i].text_buffer, &text[i * worker_length], worker_datas[i].length);
+        for (int k = 0; k < worker_datas[i].length; k ++) {
+        	worker_datas[i].crypto_buffer[k] = crypto[i * worker_length + k];
+        	worker_datas[i].text_buffer[k] = text[i * worker_length + k];
+        }
 
         pthread_create(&worker_threads[i], NULL, worker_processing, &worker_datas[i]);
     }
@@ -121,8 +141,10 @@ void OneTimePad::worker_init() {
 void OneTimePad::thread_join() {
     pthread_barrier_wait(barrier);
 
-    for (int i = 0; i < worker_count; i++)
-        strcat(output, worker_datas[i].output_buffer);
+    for (int i = 0, j = 0; i < worker_count; i++)
+        for (int k = 0; k < worker_datas[i].length; k++, j++)
+        	output[j] = worker_datas[i].output_buffer[k];
+
 
     int fd = open(output_file_name, O_WRONLY | O_CREAT, S_IWRITE | S_IREAD);
     if (fd == -1) {
@@ -139,8 +161,9 @@ void OneTimePad::thread_join() {
 
 void * worker_processing(void * arg) {
     struct WorkerData * data = (struct WorkerData *) arg;
-    for(int i = 0; i < data->length; i++)
-        data->output_buffer[i] = (data->crypto_buffer[i] ^ data->text_buffer[i]);
+    for(int i = 0; i < data->length; i++) {
+        data->output_buffer[i] = (data->crypto_buffer[i] % 127 ^ data->text_buffer[i]);
+    }
     pthread_barrier_wait(data->barrier);
     return arg;
 }
