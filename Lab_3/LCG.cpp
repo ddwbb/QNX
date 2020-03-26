@@ -5,7 +5,7 @@ LCG::LCG() {
     a = 4081;
     c = 25673;
     m = 121500;
-    count = 1000;
+    count = 100;
 
     prn = new int[count];
     file_name = FILE_NAME;
@@ -43,7 +43,7 @@ void LCG::init(int x, int _a, int _c, int _m, int n, const char * str) {
 int * LCG::operator()() {
     prn[0] = start_value;
     for (int i = 1; i < count; i++) {
-        prn[i] = (a * prn[i - 1] + c) % m;
+        prn[i] = (a * prn[i - 1] + c) % m % 127;
     }
     return prn;
 }

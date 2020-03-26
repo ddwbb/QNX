@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 
 #include <unistd.h>
 #include <cstring>
@@ -10,17 +11,16 @@
 #include <fcntl.h>
 
 #include <sys/stat.h>
-#include <sys/sysinfo.h>
 
 #include <pthread.h>
 
-#define FILE_LENGTH 10000
+#define FILE_LENGTH 1000
 
 using namespace std;
 
 struct WorkerData {
     pthread_barrier_t * barrier;
-    char * crypto_buffer;
+    int * crypto_buffer;
     char * text_buffer;
     char * output_buffer;
     int length;
@@ -35,7 +35,7 @@ class OneTimePad {
     const char * text_file_name;
     const char * output_file_name;
 
-    char * crypto;
+    int * crypto;
     char * text;
     char * output;
 
@@ -50,6 +50,7 @@ class OneTimePad {
     bool initialized;
 
     int read_file(const char *, char *);
+    int read_crypto_file(const char *, int *);
 
     void worker_init();
     void thread_join();
