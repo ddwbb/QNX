@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 
-#define FILE_NAME "/home/workspace/QNX_Momentics/PRN_OUT"
+#define FILE_NAME "PRN_OUT"
 
 using namespace std;
 
