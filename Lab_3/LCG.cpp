@@ -1,4 +1,4 @@
-#include "LCG.hpp"
+#include "include/LCG.hpp"
 
 LCG::LCG() {
     start_value = 1;

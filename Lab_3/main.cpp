@@ -7,8 +7,8 @@
 #include <sys/iofunc.h>
 #include <sys/dispatch.h>
 
-#include "config.h"
-#include "LCG.hpp"
+#include "include/config.h"
+#include "include/LCG.hpp"
 
 static resmgr_connect_funcs_t    connect_funcs;
 static resmgr_io_funcs_t         io_funcs;
@@ -77,17 +77,12 @@ int main(int argc, char *argv[]) {
 
 int io_devctl(resmgr_context_t * ctp, io_devctl_t * msg, iofunc_ocb_t * ocb) {
 	int sts;
-	ofstream file;
-	file.open("mt_out");
-	file << "Here!" << endl;
 	if ((sts = iofunc_devctl_default(ctp, msg, ocb)) != (int)_RESMGR_DEFAULT) {
-		file.close();
 		return (sts);
 	}
 	switch (msg->i.dcmd) {
 		case CYPHER_TEXT: {
-			file << "Catcha!" << endl;
-			OtpContext * otp = reinterpret_cast<OtpContext *>(_DEVCTL_DATA(msg));
+			OtpContext * otp = reinterpret_cast<OtpContext *>(_DEVCTL_DATA(msg->i));
 			LCG lcg(otp->lcg.start, otp->lcg.a, otp->lcg.c, otp->lcg.m, otp->lcg.count);
 			int * prn = lcg();
 			lcg.write();
@@ -97,13 +92,11 @@ int io_devctl(resmgr_context_t * ctp, io_devctl_t * msg, iofunc_ocb_t * ocb) {
 			break;
 		}
 		default:
-			file.close();
 			return (ENOSYS);
 	}
 	memset(&msg->o, 0, sizeof(msg->o));
 	msg->o.nbytes = sizeof(OtpContext);
 	SETIOV(ctp->iov, &msg->o, sizeof(msg->o) + sizeof(OtpContext));
-	file.close();
 	return (_RESMGR_NPARTS(1));
 }
 

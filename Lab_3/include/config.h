@@ -5,6 +5,7 @@
 
 #define LENGTH 1024
 #define DEVICE_NAME "/dev/RTOS"
+#define CTL_CODE_START_HANLDING 1
 
 typedef struct {
 	struct {
@@ -19,6 +20,6 @@ typedef struct {
 	char output[LENGTH];
 } OtpContext;
 
-#define CYPHER_TEXT __DIOTF(_DCMD_ALL, 1, OtpContext)
+#define CYPHER_TEXT __DIOTF(_DCMD_ALL, CTL_CODE_START_HANLDING, OtpContext)
 
 #endif
